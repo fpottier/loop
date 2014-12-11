@@ -256,7 +256,7 @@ Section LoopWithInvariant.
       (* The following [generalize] is really tricky -- without it, [destruct]
          on the following line is rejected with a cryptic error message. *)
       generalize (invariant_preserved hs); intros ?;
-      generalize hs; clear hs (* set [hs] aside, to ensure termination *)
+      revert hs (* set [hs] aside, to ensure termination *)
     end;
     intros; (* re-introduce the hypotheses that were set aside *)
     destruct (body s) eqn:?; try congruence.
