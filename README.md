@@ -13,22 +13,22 @@ means that, given a current state of type S, the loop body either produces a
 new state (and the loop will continue) or produces a final result (and the
 loop will stop).
 
-The user must also provide a well-founded ordering on the type S and a proof
+The user must also provide a well-founded ordering on the type `S` and a proof
 that the loop body respects this ordering.
 
-The library constructs the loop, a total function of type S -> T, and
+The library constructs the loop, a total function of type `S -> T`, and
 establishes several properties of this function, including a fixed point
 equation and a Hoare-style rasoning rule.
 
 The file Loop.v contains the library. It is organized in three parts:
 
   1. Part 1 covers the simple case (described above) where the loop is total,
-     i.e., for every initial state of type S, termination is guaranteed.
+     i.e., for every initial state of type `S`, termination is guaranteed.
 
   2. Part 2 covers the more complex case where the loop is partial, i.e., an
      invariant I must be imposed on the current state in order to guarantee
      termination. In that case, a loop can still be constructed, but it is a
-     function of type { s | I s } -> T.
+     function of type `{ s | I s } -> T`.
 
   3. Part 3 offers a facility to define a new loop as a refinement of an
      existing loop, without being forced to re-establish the termination of
