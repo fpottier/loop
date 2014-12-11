@@ -14,14 +14,14 @@ Require Import MyWf.
    a fixed point, and [loop_invariant] offers a reasoning rule in the style of
    Hoare, which allows proving that a loop invariant holds. *)
 
-(* 2. [Refinement] offers a facility to define a new loop as a refinement of
-   an existing loop, without being forced to re-establish the termination of
-   the new loop. *)
-
-(* 3. [LoopWithInvariant] covers the case where the proof of termination relies
+(* 2. [LoopWithInvariant] covers the case where the proof of termination relies
    on an invariant. In that case, one must provide the invariant and prove that
    the invariant implies termination before one can use [loop_with_invariant],
    which constructs the loop. *)
+
+(* 3. [Refinement] offers a facility to define a new loop as a refinement of
+   an existing loop, without being forced to re-establish the termination of
+   the new loop. *)
 
 (* We mark definitions PRIVATE when we believe that they are of no use to the
    end user and PUBLIC when they are intended to be useful to the end user. *)
@@ -191,123 +191,6 @@ Section Loop.
 End Loop.
 
 Extraction Inline loop.
-
-(* ---------------------------------------------------------------------------- *)
-
-(* Refinement preserves termination. If one has proved already that
-   [loop body2] terminates and if one can prove that [body1] refines
-   [body2], then [loop body1] terminates too. Furthermore, [loop body1]
-   refines [loop body2]. *)
-
-Section Refinement.
-
-  (* Assume we have two loop bodies, each with its own type of state. *)
-
-  Context { S1 T1 S2 T2 : Type }.
-  Variable body1 : S1 -> message S1 T1.
-  Variable body2 : S2 -> message S2 T2.
-
-  (* Assume [loop body2] is well-defined, i.e., terminates. *)
-
-  Context { evolution2 : S2 -> S2 -> Prop }.
-  Hypothesis wf_evolution2 : well_founded evolution2.
-  Hypothesis body2_evolution2:
-    forall s s',
-    body2 s = MsgContinue s' ->
-    evolution2 s' s.
-
-  (* Assume there is a relation [RS] between the two state types.
-     Assume this relation is defined everywhere, i.e., every
-     concrete state is in relation with some abstract state. *)
-
-  Context { RS : S1 -> S2 -> Prop }.
-
-  Hypothesis definedness:
-    forall s1 s1', body1 s1 = MsgContinue s1' -> exists s2, RS s1 s2.
-
-  Context { RT : T1 -> T2 -> Prop }.
-
-  (* Assume [body1] refines [body2], i.e., the execution of the loop
-     bodies preserves the relation [R]. *)
-
-  Hypothesis refinement:
-    forall s1 s2,
-    RS s1 s2 ->
-    message_eq RS RT (body1 s1) (body2 s2).
-
-  (* Then, [loop body1] is well-defined, i.e., terminates. *)
-
-  (* PRIVATE *)
-  Lemma wf_evolution1 : well_founded (fun s' s => body1 s = MsgContinue s').
-  Proof.
-    (* Note that we have picked the tighest possible definition of
-       [evolution1]. This makes the proof of [body_evolution] trivial.
-       There only remains to prove that this relation is well-founded. *)
-    eapply wf_simulation with (R := RS); [ | | eapply wf_evolution2 ].
-    (* Simulation. *)
-    { intros s1 s2 s1' hr h1.
-      set (hm := refinement hr).
-      rewrite h1 in hm.
-      inversion hm as [ ? s'2 hr' | ]; subst; clear hm.
-      exists s'2. eauto using body2_evolution2. }
-    (* Definedness. *)
-    { exact definedness. }
-  Qed.
-
-  (* Thus, the refined loop can be constructed as follows. *)
-
-  (* PUBLIC *)
-  Definition refine_loop : S1 -> T1 :=
-    loop body1
-      wf_evolution1
-      (fun _ _ h => h). (* trivial proof of [body_evolution] *)
-
-  (* The new loop refines the original loop. *)
-
-  (* PUBLIC *)
-  Lemma refine_loop_refines_loop:
-    forall s1 s2,
-    RS s1 s2 ->
-    RT (refine_loop s1) (loop body2 wf_evolution2 body2_evolution2 s2).
-  Proof.
-    (* By well-founded induction on [s1]. Could be on [s2], too. *)
-    intros s1. eapply well_founded_ind with (P := fun s1 => forall s2, RS s1 s2 ->
-      RT (refine_loop s1) (loop body2 wf_evolution2 body2_evolution2 s2)
-    ). exact wf_evolution1.
-    clear s1. intros s1 ih s2 hr.
-    (* Unfold the two loop bodies. *)
-    unfold refine_loop. do 2 rewrite loop_eq.
-    (* Perform case analysis over [body1 s1] and [body2 s2]. This gives
-       rise to four cases, two of which are impossible, thanks to the
-       [refinement] hypothesis. *)
-    destruct (body1 s1) eqn:heq1; destruct (body2 s2) eqn:heq2;
-    set (hm := refinement hr);
-    rewrite heq1 in hm; rewrite heq2 in hm;
-    inversion hm; subst;
-    (* Two cases remain. The result is by assumption in case [MsgFinished]
-       and by the induction hypothesis in case [MsgContinue]. *)
-    eauto.
-  Qed.
-
-  (* The combinator [refine_loop] is a special case of [loop], so in
-     principle, the lemmas [loop_eq] and [loop_invariant] can be used to
-     reason about [refine_loop]. *)
-
-End Refinement.
-
-(* By default, the extracted OCaml code for [refine_loop] has an unused
-   parameter [body2], which is unpleasant. This parameter appears because
-   [body2] is used in the termination proof; and it is not erased because its
-   sort is not [Prop]. In some cases, if we request that [refine_loop] be
-   inlined at its use site, then (almost magically) the parameter [body2] is
-   instantiated with its actual value at the use site, and vanishes -- of
-   course, since it is unused. Nevertheless, it seems preferable to explicitly
-   declare that this parameter should never appear. This is done as
-   follows. *)
-
-Extraction Implicit refine_loop [ body2 ].
-
-Extraction Inline refine_loop.
 
 (* ---------------------------------------------------------------------------- *)
 
@@ -494,4 +377,121 @@ Section LoopWithInvariant.
 End LoopWithInvariant.
 
 Extraction Inline body_with_invariant loop_with_invariant.
+
+(* ---------------------------------------------------------------------------- *)
+
+(* Refinement preserves termination. If one has proved already that
+   [loop body2] terminates and if one can prove that [body1] refines
+   [body2], then [loop body1] terminates too. Furthermore, [loop body1]
+   refines [loop body2]. *)
+
+Section Refinement.
+
+  (* Assume we have two loop bodies, each with its own type of state. *)
+
+  Context { S1 T1 S2 T2 : Type }.
+  Variable body1 : S1 -> message S1 T1.
+  Variable body2 : S2 -> message S2 T2.
+
+  (* Assume [loop body2] is well-defined, i.e., terminates. *)
+
+  Context { evolution2 : S2 -> S2 -> Prop }.
+  Hypothesis wf_evolution2 : well_founded evolution2.
+  Hypothesis body2_evolution2:
+    forall s s',
+    body2 s = MsgContinue s' ->
+    evolution2 s' s.
+
+  (* Assume there is a relation [RS] between the two state types.
+     Assume this relation is defined everywhere, i.e., every
+     concrete state is in relation with some abstract state. *)
+
+  Context { RS : S1 -> S2 -> Prop }.
+
+  Hypothesis definedness:
+    forall s1 s1', body1 s1 = MsgContinue s1' -> exists s2, RS s1 s2.
+
+  Context { RT : T1 -> T2 -> Prop }.
+
+  (* Assume [body1] refines [body2], i.e., the execution of the loop
+     bodies preserves the relation [R]. *)
+
+  Hypothesis refinement:
+    forall s1 s2,
+    RS s1 s2 ->
+    message_eq RS RT (body1 s1) (body2 s2).
+
+  (* Then, [loop body1] is well-defined, i.e., terminates. *)
+
+  (* PRIVATE *)
+  Lemma wf_evolution1 : well_founded (fun s' s => body1 s = MsgContinue s').
+  Proof.
+    (* Note that we have picked the tighest possible definition of
+       [evolution1]. This makes the proof of [body_evolution] trivial.
+       There only remains to prove that this relation is well-founded. *)
+    eapply wf_simulation with (R := RS); [ | | eapply wf_evolution2 ].
+    (* Simulation. *)
+    { intros s1 s2 s1' hr h1.
+      set (hm := refinement hr).
+      rewrite h1 in hm.
+      inversion hm as [ ? s'2 hr' | ]; subst; clear hm.
+      exists s'2. eauto using body2_evolution2. }
+    (* Definedness. *)
+    { exact definedness. }
+  Qed.
+
+  (* Thus, the refined loop can be constructed as follows. *)
+
+  (* PUBLIC *)
+  Definition refine_loop : S1 -> T1 :=
+    loop body1
+      wf_evolution1
+      (fun _ _ h => h). (* trivial proof of [body_evolution] *)
+
+  (* The new loop refines the original loop. *)
+
+  (* PUBLIC *)
+  Lemma refine_loop_refines_loop:
+    forall s1 s2,
+    RS s1 s2 ->
+    RT (refine_loop s1) (loop body2 wf_evolution2 body2_evolution2 s2).
+  Proof.
+    (* By well-founded induction on [s1]. Could be on [s2], too. *)
+    intros s1. eapply well_founded_ind with (P := fun s1 => forall s2, RS s1 s2 ->
+      RT (refine_loop s1) (loop body2 wf_evolution2 body2_evolution2 s2)
+    ). exact wf_evolution1.
+    clear s1. intros s1 ih s2 hr.
+    (* Unfold the two loop bodies. *)
+    unfold refine_loop. do 2 rewrite loop_eq.
+    (* Perform case analysis over [body1 s1] and [body2 s2]. This gives
+       rise to four cases, two of which are impossible, thanks to the
+       [refinement] hypothesis. *)
+    destruct (body1 s1) eqn:heq1; destruct (body2 s2) eqn:heq2;
+    set (hm := refinement hr);
+    rewrite heq1 in hm; rewrite heq2 in hm;
+    inversion hm; subst;
+    (* Two cases remain. The result is by assumption in case [MsgFinished]
+       and by the induction hypothesis in case [MsgContinue]. *)
+    eauto.
+  Qed.
+
+  (* The combinator [refine_loop] is a special case of [loop], so in
+     principle, the lemmas [loop_eq] and [loop_invariant] can be used to
+     reason about [refine_loop]. *)
+
+End Refinement.
+
+(* By default, the extracted OCaml code for [refine_loop] has an unused
+   parameter [body2], which is unpleasant. This parameter appears because
+   [body2] is used in the termination proof; and it is not erased because its
+   sort is not [Prop]. In some cases, if we request that [refine_loop] be
+   inlined at its use site, then (almost magically) the parameter [body2] is
+   instantiated with its actual value at the use site, and vanishes -- of
+   course, since it is unused. Nevertheless, it seems preferable to explicitly
+   declare that this parameter should never appear. This is done as
+   follows. *)
+
+Extraction Implicit refine_loop [ body2 ].
+
+Extraction Inline refine_loop.
 
