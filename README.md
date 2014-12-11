@@ -34,7 +34,7 @@ The file Loop.v contains the library. It is organized in three parts:
      existing loop, without being forced to re-establish the termination of
      the new loop.
 
-The file MyWf.v contains a few lemmas about well-foundedness, which the end
+The file [MyWf.v](MyWf.v) contains a few lemmas about well-foundedness, which the end
 user does not need to worry about.
 
 The file LoopDemo.v contains demos of parts 1 and 2. (There is no demo of
