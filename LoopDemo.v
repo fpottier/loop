@@ -19,7 +19,7 @@ Extract Inlined Constant plus => "(+)".
 
 (* ---------------------------------------------------------------------------- *)
 
-(* Demo 1. Euclid's GCD algorithm, expressed as a loop. *)
+(* Demo 1. Euclid's GCD algorithm. *)
 
 (* The body of Euclid's loop. *)
 
@@ -103,7 +103,7 @@ so we have, in OCaml:
 
 (* ---------------------------------------------------------------------------- *)
 
-(* Demo 2. Couting up to 100, two by two, accumulating a list of indices.
+(* Demo 2. Counting up to 100, two by two, accumulating a list of indices.
    This is a loop whose termination argument relies on an invariant, namely
    the property of being even and less than (or equal to) 100. *)
 
