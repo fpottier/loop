@@ -20,7 +20,7 @@ The library constructs the loop, a total function of type `S -> T`, and
 establishes several properties of this function, including a fixed point
 equation and a Hoare-style rasoning rule.
 
-The file Loop.v contains the library. It is organized in three parts:
+The file [Loop.v](Loop.v) contains the library. It is organized in three parts:
 
   1. Part 1 covers the simple case (described above) where the loop is total,
      i.e., for every initial state of type `S`, termination is guaranteed.
@@ -37,7 +37,7 @@ The file Loop.v contains the library. It is organized in three parts:
 The file [MyWf.v](MyWf.v) contains a few lemmas about well-foundedness, which the end
 user does not need to worry about.
 
-The file LoopDemo.v contains demos of parts 1 and 2. (There is no demo of
+The file [LoopDemo.v](LoopDemo.v) contains demos of parts 1 and 2. (There is no demo of
 part 3 for the moment.)
 
 The second demo, in particular, is still rather clumsy. Suggestions for
