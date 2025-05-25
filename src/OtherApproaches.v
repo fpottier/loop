@@ -1,9 +1,9 @@
 Set Implicit Arguments.
-Require Import Omega.
-Require Import Coq.Numbers.Natural.Peano.NPeano. (* [mod] *)
+Require Import Lia.
 Require Import Coq.Arith.Wf_nat.                 (* [lt_wf] *)
 Require Import Coq.Wellfounded.Inclusion.        (* [wf_incl] *)
 Require Import Coq.Wellfounded.Inverse_Image.    (* [wf_inverse_image] *)
+Require Import Coq.Arith.PeanoNat.               (* [modulo] *)
 Require Import Coq.Arith.Peano_dec.              (* [eq_nat_dec] *)
 Require Import Recdef.
 
@@ -14,8 +14,8 @@ Require Import Recdef.
 (* Use OCaml integers at extraction time. *)
 
 Require Import ExtrOcamlNatInt.
-Extract Inlined Constant modulo => "(mod)".
-Extract Inlined Constant plus => "(+)".
+Extract Inlined Constant Nat.modulo => "(mod)".
+Extract Inlined Constant Nat.add => "(+)".
 
 (* ---------------------------------------------------------------------------- *)
 
@@ -86,4 +86,3 @@ Extraction GCD_alt.
    [Function]. If one attempts to work directly with inhabitants of a subset
    type, one ends up having to write complicated proof terms, dependent [if]'s,
    etc. *)
-

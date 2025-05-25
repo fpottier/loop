@@ -1,11 +1,11 @@
 Set Implicit Arguments.
-Require Import Omega.
-Require Import Coq.Numbers.Natural.Peano.NPeano. (* [mod] *)
+Require Import Lia.
 Require Import Coq.Arith.Wf_nat.                 (* [lt_wf] *)
 Require Import Coq.Wellfounded.Inclusion.        (* [wf_incl] *)
 Require Import Coq.Wellfounded.Inverse_Image.    (* [wf_inverse_image] *)
+Require Import Coq.Arith.PeanoNat.               (* [modulo] *)
 Require Import Coq.Arith.Peano_dec.              (* [eq_nat_dec] *)
-Require Import Loop.
+Require Import loop.Loop.
 
 (* This file contains a few demos of the use of [Loop]. *)
 
@@ -14,8 +14,8 @@ Require Import Loop.
 (* Use OCaml integers at extraction time. *)
 
 Require Import ExtrOcamlNatInt.
-Extract Inlined Constant modulo => "(mod)".
-Extract Inlined Constant plus => "(+)".
+Extract Inlined Constant Nat.modulo => "(mod)".
+Extract Inlined Constant Nat.add => "(+)".
 
 (* ---------------------------------------------------------------------------- *)
 
@@ -88,7 +88,7 @@ Extraction gcd.
 (* This should yield the following OCaml code:
 
 let rec gcd = function
-| (a, b) -> if (=) b 0 then a else let s' = (b, ((mod) a b)) in gcd s'
+| (a, b) -> if (=) b 0 then a else gcd (b, ((mod) a b))
 
 so we have, in OCaml:
 
@@ -161,7 +161,7 @@ Proof.
   unfold count_evolution, count_invariant. intros [ n' _ ] [ n _ ] ?.
   repeat match goal with h: _ /\ _ |- _ => destruct h end.
   generalize (plus2_div2 n); intro.
-  unfold MAX in *. omega.
+  unfold MAX in *. lia.
 Qed.
 
 Lemma count_body_evolution:
@@ -171,7 +171,7 @@ Proof.
   intros [ n ? ] [ n' ? ] [ ? ? ].
   destruct (eq_nat_dec n MAX); [ congruence | ].
   intro h. injection h. clear h. intro h.
-  unfold TWO in *. omega.
+  unfold TWO in *. lia.
 Qed.
 
 (* We isolate the following auxiliary lemma because it is used in the
@@ -182,8 +182,8 @@ Lemma count_invariant_preserved_aux:
 Proof.
   unfold count_invariant. intros ? ? [ ? ? ] ?.
   split.
-  { generalize (plus2_div2 n); intro. omega. }
-  { unfold MAX in *. omega. }
+  { generalize (plus2_div2 n); intro. lia. }
+  { unfold MAX in *. lia. }
 Qed.
 
 Lemma count_invariant_preserved:
@@ -294,9 +294,9 @@ Proof.
   (* The extra invariant is preserved. *)
   { intros [ n ns ] [ n' ns' ] [ ? ? ] [ ? ? ] ?.
     destruct (eq_nat_dec n MAX); [ congruence | msg_injection ].
-    intros. subst n' ns'.
+    intros. subst.
     split.
-    { omega. }
+    { lia. }
     { unfold goal in *. simpl. intros ? [ | ].
       intros. subst n. assumption.
       eauto. }
@@ -313,4 +313,3 @@ Proof.
       { unfold goal. simpl. tauto. }
   }
 Qed.
-

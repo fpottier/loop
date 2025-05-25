@@ -1,5 +1,6 @@
 Set Implicit Arguments.
-Require Import MyWf.
+Require Import Extraction.
+From loop Require Import MyWf.
 
 (* This module helps define a simple [do/while] loop in Coq. *)
 
@@ -494,4 +495,3 @@ End Refinement.
 Extraction Implicit refine_loop [ body2 ].
 
 Extraction Inline refine_loop.
-

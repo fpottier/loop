@@ -1,3 +1,2 @@
-*.glob
-*.vo
-*.v.d
+*~
+_build

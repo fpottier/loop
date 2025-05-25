@@ -1,0 +1,4 @@
+(coq.theory
+  (package coq-loop)
+  (name loop)
+)
