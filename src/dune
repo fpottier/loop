@@ -1,4 +1,7 @@
 (coq.theory
   (package coq-loop)
   (name loop)
+  (theories
+    Equations ;; only for the demo in OtherApproaches.v
+  )
 )

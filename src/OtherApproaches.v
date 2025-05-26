@@ -80,6 +80,46 @@ Defined.
 (* Here, the extracted code is good. *)
 Extraction GCD_alt.
 
+(* -------------------------------------------------------------------------- *)
+
+(* GCD can also be defined using [Equations]. *)
+
+From Equations Require Import Equations.
+
+Equations gcd' (a : nat) (b : nat) : nat by wf b lt :=
+gcd' a b := if eq_nat_dec b 0 then a else gcd' b (a mod b).
+Next Obligation.
+  eauto using Nat.mod_upper_bound.
+Defined.
+
+(* This alternative syntax can also be used:
+
+Equations gcd' (a : nat) (b : nat) : nat
+by wf b lt :=
+gcd' a b with eq_nat_dec b 0 => {
+gcd' _ _ (left _)  := a;
+gcd' _ _ (right _) := gcd' b (a mod b);
+}.
+ *)
+
+(* Here, the extracted code is OK but not great. The
+   extracted function [gcd'] takes a pair [(a, b)].
+   The projections make the code difficult to read. *)
+Extraction gcd'.
+
+(* Now, let us a prove a property of [gcd'] using [funelim]. *)
+
+Lemma gcd'_correctness {a b} :
+  gcd' a b >= 0. (* yes, this is trivial *)
+Proof.
+  funelim (gcd' a b); lia.
+Qed.
+
+(* The tactic [funelim] introduces a use of the axiom of dependent
+   functional extensionality. *)
+
+Print Assumptions gcd'_correctness.
+
 (* ---------------------------------------------------------------------------- *)
 
 (* Demo 2. Counting up to 100, two by two. I don't know how to do this using
